@@ -57,6 +57,8 @@ class MainActivity : AppCompatActivity() {
 
         binding.includeEmpty.emptyState.visibility =
             (if (list.isEmpty()) View.VISIBLE else View.GONE)
+        binding.rvTasks.visibility =
+            (if (list.isNotEmpty()) View.VISIBLE else View.GONE)
 
         adapter.submitList(list)
     }
