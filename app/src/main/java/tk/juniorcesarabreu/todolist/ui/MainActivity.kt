@@ -1,8 +1,10 @@
 package tk.juniorcesarabreu.todolist.ui
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import tk.juniorcesarabreu.todolist.databinding.ActivityMainBinding
 import tk.juniorcesarabreu.todolist.datasource.TaskDataSource
@@ -28,26 +30,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun insertListeners() {
 
+        // add fab
         binding.fab.setOnClickListener {
-            val intent = Intent(this, AddTaskActivity::class.java)
-            startActivityForResult(intent, CREATE_NEW_TASK)
+
+            openTaskActivity.launch(
+                Intent(this, AddTaskActivity::class.java)
+            )
         }
 
-        adapter.listenerEdit = {
-            val intent = Intent(this, AddTaskActivity::class.java)
-            intent.putExtra(AddTaskActivity.TASK_ID, it.id)
-            startActivityForResult(intent, CREATE_NEW_TASK)
+        // edit option
+        adapter.listenerEdit = { task ->
+
+            openTaskActivity.launch(
+                Intent(this, AddTaskActivity::class.java)
+                    .apply {
+                        putExtra(AddTaskActivity.TASK_ID, task.id)
+                    }
+            )
         }
+
+        // delete option
         adapter.listenerDelete = {
             TaskDataSource.deleteTask(it)
-            updateList()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == CREATE_NEW_TASK && resultCode == RESULT_OK) {
             updateList()
         }
     }
@@ -63,7 +67,13 @@ class MainActivity : AppCompatActivity() {
         adapter.submitList(list)
     }
 
-    companion object {
-        private const val CREATE_NEW_TASK = 1000
+    // activity result contract
+    private val openTaskActivity = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+
+        if (result.resultCode == Activity.RESULT_OK) {
+            updateList()
+        }
     }
 }
